@@ -1,0 +1,22 @@
+{% extends "base" %}
+
+{% block content %}
+  <h2>{{query}} (<a href="{{add_uri}}">go again</a>)</h2>
+  <table class="table">
+	<thead>
+	  <tr>
+		<th scope="col">poster</th>
+		<th scope="col">title (year)</th>
+		<th scope="col">imdb id</th>
+	  </tr>
+	  <tbody>
+		{% for m in items %}
+		  <tr>
+			<td><img width="200" src="{{m.poster_uri}}" /></td>
+			<td><b>{{m.title}}</b> ({{m.year}})</td>
+			<td>{{m.imdb_id}}</td>
+		  </tr>
+		{% endfor %}
+	  </tbody>
+  </table>
+{% endblock content %}

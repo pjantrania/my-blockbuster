@@ -1,0 +1,25 @@
+{% extends "base" %}
+
+{% block content %}
+  <h1>Hi!</h1>
+  <a href="{{add_uri}}">add movie</a>
+  <table class="table">
+	<thead>
+	  <tr>
+		<th scope="col">id</th>
+		<th scope="col">title</th>
+		<th scope="col">watched?</th>
+		<th scope="col">added</th>
+	  </tr>
+	  <tbody>
+		{% for m in items %}
+		  <tr>
+			<th scope="row">{{m.id}}</th>
+			<td>{{m.title}}</td>
+			<td>{{m.watched}}</td>
+			<td>{{m.added}}</td>
+		  </tr>
+		{% endfor %}
+	  </tbody>
+  </table>
+{% endblock content %}

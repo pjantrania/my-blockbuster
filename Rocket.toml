@@ -1,0 +1,2 @@
+[default.databases.sqlite_movies]
+url = "/home/purnam/data/movies.sqlite"
