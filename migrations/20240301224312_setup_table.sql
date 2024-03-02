@@ -1,0 +1,28 @@
+-- Add migration script here
+create table if not exists movie(
+    id integer primary key,
+    title text,
+    year text,
+    imdb_id text,
+    result_type text,
+    poster_uri text,
+    released text,
+    runtime text,
+    genre text,
+    director text,
+    writer text,
+    actors text,
+    plot text,
+    language text,
+    country text,
+    awards text,
+    metascore text,
+    imdb_rating text,
+    imdb_votes text,
+    dvd text,
+    box_office text,
+    production text,
+    website text,
+    watched boolean default FALSE,
+    added timestamp default current_timestamp
+);

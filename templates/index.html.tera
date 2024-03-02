@@ -15,7 +15,7 @@
 		{% for m in items %}
 		  <tr>
 			<th scope="row">{{m.id}}</th>
-			<td>{{m.title}}</td>
+			<td>{{m.movie.title}}</td>
 			<td>{{m.watched}}</td>
 			<td>{{m.added}}</td>
 		  </tr>
