@@ -10,6 +10,7 @@
 		<th scope="col">title</th>
 		<th scope="col">watched?</th>
 		<th scope="col">added</th>
+		<th scope="col"></th>
 	  </tr>
 	  <tbody>
 		{% for m in items %}
@@ -18,6 +19,11 @@
 			<td><a href="/movie?id={{m.id}}">{{m.movie.title}}</a></td>
 			<td>{{m.watched}}</td>
 			<td>{{m.added}}</td>
+			<td>
+			  <form method="post" action="/api/movie/delete">
+				<input type="hidden" name="id" value="{{m.id}}">
+				<button>delete</button>
+			  </form>
 		  </tr>
 		{% endfor %}
 	  </tbody>
