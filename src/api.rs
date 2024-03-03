@@ -16,9 +16,26 @@ pub async fn add_movie(mut db: Connection<Movies>, movie: Form<MovieInput<'_>>) 
 }
 
 #[derive(FromForm)]
-struct IdInput<'r> {
+pub struct MovieIdInput {
+    id: i32,
+}
+
+#[post("/movie/delete", data = "<movie_id_form>")]
+pub async fn delete_by_id(
+    mut db: Connection<Movies>,
+    movie_id_form: Form<MovieIdInput>,
+) -> Redirect {
+    sqlx::query("delete from movie where id = ?")
+        .bind(movie_id_form.id)
+        .execute(&mut **db)
+        .await
+        .unwrap();
+    Redirect::to("/")
+}
+
+#[derive(FromForm)]
+pub struct IdInput<'r> {
     imdb_id: Strict<&'r str>,
-    query: &'r str,
 }
 
 #[post("/movie/fromId", data = "<id_form>")]

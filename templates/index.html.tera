@@ -15,7 +15,7 @@
 		{% for m in items %}
 		  <tr>
 			<th scope="row">{{m.id}}</th>
-			<td>{{m.movie.title}}</td>
+			<td><a href="/movie?id={{m.id}}">{{m.movie.title}}</a></td>
 			<td>{{m.watched}}</td>
 			<td>{{m.added}}</td>
 		  </tr>

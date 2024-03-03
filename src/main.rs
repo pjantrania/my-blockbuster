@@ -42,9 +42,17 @@ fn rocket() -> _ {
     rocket::build()
         .mount(
             "/",
-            routes![root::index, root::new_movie_form, root::search_result_form],
+            routes![
+                root::index,
+                root::new_movie_form,
+                root::search_result_form,
+                root::movie_detail,
+            ],
         )
-        .mount("/api", routes![api::add_movie, api::add_from_imdb_id])
+        .mount(
+            "/api",
+            routes![api::add_movie, api::add_from_imdb_id, api::delete_by_id],
+        )
         .mount("/public", FileServer::from(relative!("static")))
         .attach(Template::fairing())
         .attach(Movies::init())

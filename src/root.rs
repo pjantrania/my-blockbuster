@@ -20,9 +20,18 @@ pub async fn index(mut db: Connection<Movies>) -> Template {
         .await
         .unwrap();
 
-    println!("{:#?}", res[0]);
     let add_uri = uri!(new_movie_form);
     Template::render("index", context! {items: res, add_uri: add_uri.to_string()})
+}
+
+#[get("/movie?<id>")]
+pub async fn movie_detail(mut db: Connection<Movies>, id: i32) -> Template {
+    let res = sqlx::query_as::<_, Movie>("select * from movie where id = ?")
+        .bind(id)
+        .fetch_one(&mut **db)
+        .await
+        .unwrap();
+    Template::render("movie", context! {m: res})
 }
 
 #[get("/add")]
