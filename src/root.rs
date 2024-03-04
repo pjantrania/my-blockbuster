@@ -1,8 +1,10 @@
 use crate::omdb::{search_omdb, OmdbResponse, SearchResult};
 use crate::Movies;
+use rocket::Request;
 use rocket_db_pools::Connection;
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
+use tracing::{event, Level};
 
 #[derive(sqlx::FromRow, Serialize, Debug)]
 struct Movie {
@@ -15,23 +17,34 @@ struct Movie {
 
 #[get("/")]
 pub async fn index(mut db: Connection<Movies>) -> Template {
-    let res = sqlx::query_as::<_, Movie>("select * from movie limit 100")
+    let res = match sqlx::query_as::<_, Movie>("select * from movie limit 100")
         .fetch_all(&mut **db)
         .await
-        .unwrap();
+    {
+        Ok(ms) => ms,
+        Err(e) => {
+            event!(Level::ERROR, "Could not fetch movies: {}", e);
+            vec![]
+        }
+    };
 
     let add_uri = uri!(new_movie_form);
     Template::render("index", context! {items: res, add_uri: add_uri.to_string()})
 }
 
 #[get("/movie?<id>")]
-pub async fn movie_detail(mut db: Connection<Movies>, id: i32) -> Template {
-    let res = sqlx::query_as::<_, Movie>("select * from movie where id = ?")
+pub async fn movie_detail(mut db: Connection<Movies>, id: i32) -> Option<Template> {
+    match sqlx::query_as::<_, Movie>("select * from movie where id = ?")
         .bind(id)
         .fetch_one(&mut **db)
         .await
-        .unwrap();
-    Template::render("movie", context! {m: res})
+    {
+        Ok(res) => Some(Template::render("movie", context! {m: res})),
+        Err(e) => {
+            tracing::error!("Error fetching movie with id = {}: {}", id, e);
+            None
+        }
+    }
 }
 
 #[get("/add")]
@@ -49,4 +62,14 @@ pub async fn search_result_form(query: &str) -> Template {
         ),
         OmdbResponse::Error(e) => Template::render("add", context! {error:e.error,query:query}),
     }
+}
+
+#[catch(404)]
+pub fn not_found(req: &Request<'_>) -> Template {
+    Template::render(
+        "error/404",
+        context! {
+            uri: req.uri()
+        },
+    )
 }

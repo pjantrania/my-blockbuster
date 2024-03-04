@@ -32,6 +32,7 @@
 		<dt class="col-sm-1">Box Office</dt>
 		<dd class="col-sm-6">{{m.movie.box_office}}</dd>
 
+		
 		<dt class="col-sm-1">Production</dt>
 		<dd class="col-sm-6">{{m.movie.production}}</dd>
 	  </dl>

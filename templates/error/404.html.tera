@@ -1,0 +1,6 @@
+{% extends "base" %}
+
+{% block content %}
+  <h1>404: Not found</h1>
+  The requested resource {{ uri }} does not exist.
+{% endblock content %}

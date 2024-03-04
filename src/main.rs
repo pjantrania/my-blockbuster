@@ -39,6 +39,11 @@ struct MovieInput<'r> {
 #[launch]
 fn rocket() -> _ {
     let migrations_fairing = AdHoc::try_on_ignite("SQLx Migrations", run_migrations);
+    let subscriber = tracing_subscriber::fmt()
+        .compact()
+        .with_ansi(false)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).unwrap();
     rocket::build()
         .mount(
             "/",
@@ -54,6 +59,7 @@ fn rocket() -> _ {
             routes![api::add_movie, api::add_from_imdb_id, api::delete_by_id],
         )
         .mount("/public", FileServer::from(relative!("static")))
+        .register("/", catchers![root::not_found])
         .attach(Template::fairing())
         .attach(Movies::init())
         .attach(migrations_fairing)
