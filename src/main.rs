@@ -47,7 +47,10 @@ fn rocket() -> _ {
     let migrations_fairing = AdHoc::try_on_ignite("SQLx Migrations", run_migrations);
 
     let http_client = reqwest::Client::new();
-    let client = Arc::new(MyBlockbusterClient::new(http_client));
+    let client = Arc::new(MyBlockbusterClient::new(
+        http_client,
+        String::from("http://localhost:8000"),
+    ));
 
     let subscriber = tracing_subscriber::fmt()
         .compact()
