@@ -20,7 +20,7 @@
 			<td>{{m.watched}}</td>
 			<td>{{m.added}}</td>
 			<td>
-			  <form method="post" action="/api/movie/delete">
+			  <form method="post" action="/delete">
 				<input type="hidden" name="id" value="{{m.id}}">
 				<button>delete</button>
 			  </form>

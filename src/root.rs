@@ -1,6 +1,11 @@
+use std::sync::Arc;
+
+use crate::client::MyBlockbusterClient;
 use crate::omdb::{search_omdb, OmdbResponse, SearchResult};
 use crate::Movies;
-use rocket::Request;
+use rocket::form::Form;
+use rocket::response::Redirect;
+use rocket::{Request, State};
 use rocket_db_pools::Connection;
 use rocket_dyn_templates::{context, Template};
 use serde::Serialize;
@@ -62,6 +67,28 @@ pub async fn search_result_form(query: &str) -> Template {
         ),
         OmdbResponse::Error(e) => Template::render("add", context! {error:e.error,query:query}),
     }
+}
+
+#[derive(FromForm)]
+pub struct MovieIdInput {
+    id: i32,
+}
+
+#[post("/delete", data = "<id_form>")]
+pub async fn delete_movie(
+    client: &State<Arc<MyBlockbusterClient>>,
+    id_form: Form<MovieIdInput>,
+) -> Redirect {
+    match client.delete_movie(id_form.id).await {
+        Ok(res) => tracing::info!(
+            "Successfully deleted movie with id {} and title {}.",
+            res.movie_id,
+            res.title
+        ),
+        Err(e) => tracing::error!("Error deleting movie: {}", e.err),
+    };
+
+    Redirect::to("/")
 }
 
 #[catch(404)]

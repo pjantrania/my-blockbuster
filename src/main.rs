@@ -1,5 +1,9 @@
 #[macro_use]
 extern crate rocket;
+
+use std::sync::Arc;
+
+use client::MyBlockbusterClient;
 use rocket::{
     fairing::{self, AdHoc},
     form::Strict,
@@ -11,6 +15,8 @@ use rocket_db_pools::{sqlx, Database};
 use rocket_dyn_templates::Template;
 
 mod api;
+mod client;
+mod model;
 mod omdb;
 mod root;
 
@@ -39,6 +45,10 @@ struct MovieInput<'r> {
 #[launch]
 fn rocket() -> _ {
     let migrations_fairing = AdHoc::try_on_ignite("SQLx Migrations", run_migrations);
+
+    let http_client = reqwest::Client::new();
+    let client = Arc::new(MyBlockbusterClient::new(http_client));
+
     let subscriber = tracing_subscriber::fmt()
         .compact()
         .with_ansi(false)
@@ -52,6 +62,7 @@ fn rocket() -> _ {
                 root::new_movie_form,
                 root::search_result_form,
                 root::movie_detail,
+                root::delete_movie,
             ],
         )
         .mount(
@@ -63,4 +74,5 @@ fn rocket() -> _ {
         .attach(Template::fairing())
         .attach(Movies::init())
         .attach(migrations_fairing)
+        .manage(Arc::clone(&client))
 }

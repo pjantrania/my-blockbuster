@@ -1,7 +1,11 @@
-use crate::{omdb, root, MovieInput, Movies};
+use crate::{
+    model::{DeleteResponse, ErrorResponse},
+    omdb, root, MovieInput, Movies,
+};
 use rocket::{
     form::{Form, Strict},
     response::Redirect,
+    serde::json::Json,
 };
 use rocket_db_pools::{sqlx, Connection};
 
@@ -15,22 +19,24 @@ pub async fn add_movie(mut db: Connection<Movies>, movie: Form<MovieInput<'_>>) 
     Redirect::to("/")
 }
 
-#[derive(FromForm)]
-pub struct MovieIdInput {
-    id: i32,
-}
-
-#[post("/movie/delete", data = "<movie_id_form>")]
+#[delete("/movie/<id>")]
 pub async fn delete_by_id(
     mut db: Connection<Movies>,
-    movie_id_form: Form<MovieIdInput>,
-) -> Redirect {
-    sqlx::query("delete from movie where id = ?")
-        .bind(movie_id_form.id)
-        .execute(&mut **db)
-        .await
-        .unwrap();
-    Redirect::to("/")
+    id: i32,
+) -> Result<Json<DeleteResponse>, Json<ErrorResponse>> {
+    match sqlx::query_as::<_, DeleteResponse>(
+        "delete from movie where id = ? returning id as movie_id, title",
+    )
+    .bind(id)
+    .fetch_one(&mut **db)
+    .await
+    {
+        Ok(res) => Ok(Json(res)),
+        Err(e) => {
+            tracing::error!("Error deleting movie with id = {}: {}", id, e);
+            Err(Json(ErrorResponse { err: e.to_string() }))
+        }
+    }
 }
 
 #[derive(FromForm)]
