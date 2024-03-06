@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::client::MyBlockbusterClient;
 use crate::model::ResponseResult;
 use crate::omdb::{search_omdb, OmdbResponse, SearchResult};
@@ -77,7 +75,7 @@ pub struct MovieIdInput {
 
 #[post("/delete", data = "<id_form>")]
 pub async fn delete_movie(
-    client: &State<Arc<MyBlockbusterClient>>,
+    client: &State<MyBlockbusterClient>,
     id_form: Form<MovieIdInput>,
 ) -> Redirect {
     match client.delete_movie(id_form.id).await {
@@ -94,7 +92,7 @@ pub async fn delete_movie(
 
 #[post("/toggleWatched", data = "<id_form>")]
 pub async fn toggle_watched(
-    client: &State<Arc<MyBlockbusterClient>>,
+    client: &State<MyBlockbusterClient>,
     id_form: Form<MovieIdInput>,
 ) -> Redirect {
     match client.toggle_watched(id_form.id).await {

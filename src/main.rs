@@ -1,8 +1,6 @@
 #[macro_use]
 extern crate rocket;
 
-use std::sync::Arc;
-
 use client::MyBlockbusterClient;
 use rocket::{
     fairing::{self, AdHoc},
@@ -47,10 +45,7 @@ fn rocket() -> _ {
     let migrations_fairing = AdHoc::try_on_ignite("SQLx Migrations", run_migrations);
 
     let http_client = reqwest::Client::new();
-    let client = Arc::new(MyBlockbusterClient::new(
-        http_client,
-        String::from("http://localhost:8000"),
-    ));
+    let client = MyBlockbusterClient::new(http_client, String::from("http://localhost:8000"));
 
     let subscriber = tracing_subscriber::fmt()
         .compact()
@@ -83,5 +78,5 @@ fn rocket() -> _ {
         .attach(Template::fairing())
         .attach(Movies::init())
         .attach(migrations_fairing)
-        .manage(Arc::clone(&client))
+        .manage(client)
 }
