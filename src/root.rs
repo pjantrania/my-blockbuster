@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::client::MyBlockbusterClient;
+use crate::model::ResponseResult;
 use crate::omdb::{search_omdb, OmdbResponse, SearchResult};
 use crate::Movies;
 use rocket::form::Form;
@@ -80,12 +81,12 @@ pub async fn delete_movie(
     id_form: Form<MovieIdInput>,
 ) -> Redirect {
     match client.delete_movie(id_form.id).await {
-        Ok(res) => tracing::info!(
+        ResponseResult::Response(res) => tracing::info!(
             "Successfully deleted movie with id {} and title {}.",
             res.movie_id,
             res.title
         ),
-        Err(e) => tracing::error!("Error deleting movie: {}", e.err),
+        ResponseResult::ErrorResponse(e) => tracing::error!("Error deleting movie: {}", e.err),
     };
 
     Redirect::to("/")
@@ -97,14 +98,14 @@ pub async fn toggle_watched(
     id_form: Form<MovieIdInput>,
 ) -> Redirect {
     match client.toggle_watched(id_form.id).await {
-        crate::model::ResponseResult::Response(res) => {
+        ResponseResult::Response(res) => {
             tracing::info!(
                 "Successfully switched watched to {} for movie with id {}.",
                 res.watched,
                 res.movie_id,
             )
         }
-        crate::model::ResponseResult::ErrorResponse(e) => {
+        ResponseResult::ErrorResponse(e) => {
             tracing::error!("Error toggling watched: {}", e.err)
         }
     };

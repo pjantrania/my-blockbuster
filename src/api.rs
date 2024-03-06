@@ -23,7 +23,7 @@ pub async fn add_movie(mut db: Connection<Movies>, movie: Form<MovieInput<'_>>) 
 pub async fn delete_by_id(
     mut db: Connection<Movies>,
     id: i32,
-) -> Result<Json<DeleteResponse>, Json<ErrorResponse>> {
+) -> Json<ResponseResult<DeleteResponse>> {
     match sqlx::query_as::<_, DeleteResponse>(
         "delete from movie where id = ? returning id as movie_id, title",
     )
@@ -31,10 +31,12 @@ pub async fn delete_by_id(
     .fetch_one(&mut **db)
     .await
     {
-        Ok(res) => Ok(Json(res)),
+        Ok(res) => Json(ResponseResult::Response(res)),
         Err(e) => {
             tracing::error!("Error deleting movie with id = {}: {}", id, e);
-            Err(Json(ErrorResponse { err: e.to_string() }))
+            Json(ResponseResult::ErrorResponse(ErrorResponse {
+                err: e.to_string(),
+            }))
         }
     }
 }
