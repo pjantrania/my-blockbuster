@@ -1,6 +1,6 @@
 use crate::{
     model::{DeleteResponse, ErrorResponse, ResponseResult, WatchedToggled},
-    omdb, root, MovieInput, Movies,
+    omdb, web, MovieInput, Movies,
 };
 use rocket::{
     form::{Form, Strict},
@@ -152,5 +152,5 @@ pub async fn add_from_imdb_id(mut db: Connection<Movies>, id_form: Form<IdInput<
         .unwrap();
     }
 
-    Redirect::to(uri!(root::index()))
+    Redirect::to(uri!(web::index()))
 }

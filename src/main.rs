@@ -16,7 +16,7 @@ mod api;
 mod client;
 mod model;
 mod omdb;
-mod root;
+mod web;
 
 #[derive(Database)]
 #[database("sqlite_movies")]
@@ -56,12 +56,12 @@ fn rocket() -> _ {
         .mount(
             "/",
             routes![
-                root::delete_movie,
-                root::index,
-                root::movie_detail,
-                root::new_movie_form,
-                root::search_result_form,
-                root::toggle_watched,
+                web::delete_movie,
+                web::index,
+                web::movie_detail,
+                web::new_movie_form,
+                web::search_result_form,
+                web::toggle_watched,
             ],
         )
         .mount(
@@ -74,7 +74,7 @@ fn rocket() -> _ {
             ],
         )
         .mount("/public", FileServer::from(relative!("static")))
-        .register("/", catchers![root::not_found])
+        .register("/", catchers![web::not_found])
         .attach(Template::fairing())
         .attach(Movies::init())
         .attach(migrations_fairing)
