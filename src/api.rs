@@ -1,5 +1,5 @@
 use crate::{
-    model::{DeleteResponse, ErrorResponse},
+    model::{DeleteResponse, ErrorResponse, ResponseResult, WatchedToggled},
     omdb, root, MovieInput, Movies,
 };
 use rocket::{
@@ -36,6 +36,25 @@ pub async fn delete_by_id(
             tracing::error!("Error deleting movie with id = {}: {}", id, e);
             Err(Json(ErrorResponse { err: e.to_string() }))
         }
+    }
+}
+
+#[put("/movie/<id>/watched")]
+pub async fn toggle_watched(
+    mut db: Connection<Movies>,
+    id: i32,
+) -> Json<ResponseResult<WatchedToggled>> {
+    match sqlx::query_as::<_, WatchedToggled>(
+        "update movie set watched = not watched where id = ? returning id as movie_id, watched",
+    )
+    .bind(id)
+    .fetch_one(&mut **db)
+    .await
+    {
+        Ok(res) => Json(ResponseResult::Response(res)),
+        Err(e) => Json(ResponseResult::ErrorResponse(ErrorResponse {
+            err: e.to_string(),
+        })),
     }
 }
 

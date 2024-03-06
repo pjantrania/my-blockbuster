@@ -91,6 +91,27 @@ pub async fn delete_movie(
     Redirect::to("/")
 }
 
+#[post("/toggleWatched", data = "<id_form>")]
+pub async fn toggle_watched(
+    client: &State<Arc<MyBlockbusterClient>>,
+    id_form: Form<MovieIdInput>,
+) -> Redirect {
+    match client.toggle_watched(id_form.id).await {
+        crate::model::ResponseResult::Response(res) => {
+            tracing::info!(
+                "Successfully switched watched to {} for movie with id {}.",
+                res.watched,
+                res.movie_id,
+            )
+        }
+        crate::model::ResponseResult::ErrorResponse(e) => {
+            tracing::error!("Error toggling watched: {}", e.err)
+        }
+    };
+
+    Redirect::to("/")
+}
+
 #[catch(404)]
 pub fn not_found(req: &Request<'_>) -> Template {
     Template::render(

@@ -61,16 +61,22 @@ fn rocket() -> _ {
         .mount(
             "/",
             routes![
+                root::delete_movie,
                 root::index,
+                root::movie_detail,
                 root::new_movie_form,
                 root::search_result_form,
-                root::movie_detail,
-                root::delete_movie,
+                root::toggle_watched,
             ],
         )
         .mount(
             "/api",
-            routes![api::add_movie, api::add_from_imdb_id, api::delete_by_id],
+            routes![
+                api::add_from_imdb_id,
+                api::add_movie,
+                api::delete_by_id,
+                api::toggle_watched,
+            ],
         )
         .mount("/public", FileServer::from(relative!("static")))
         .register("/", catchers![root::not_found])

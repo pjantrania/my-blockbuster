@@ -12,3 +12,17 @@ pub struct DeleteResponse {
 pub struct ErrorResponse {
     pub err: String,
 }
+
+#[derive(Deserialize, Serialize, sqlx::FromRow)]
+#[serde(crate = "rocket::serde")]
+pub struct WatchedToggled {
+    pub movie_id: i32,
+    pub watched: bool,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(crate = "rocket::serde", tag = "type")]
+pub enum ResponseResult<T> {
+    Response(T),
+    ErrorResponse(ErrorResponse),
+}

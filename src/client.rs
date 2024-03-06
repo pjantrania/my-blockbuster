@@ -1,4 +1,4 @@
-use crate::model::{DeleteResponse, ErrorResponse};
+use crate::model::{DeleteResponse, ErrorResponse, ResponseResult, WatchedToggled};
 
 pub struct MyBlockbusterClient {
     client: reqwest::Client,
@@ -23,5 +23,20 @@ impl MyBlockbusterClient {
                 .as_str(),
         )
         .unwrap())
+    }
+
+    pub async fn toggle_watched(&self, id: i32) -> ResponseResult<WatchedToggled> {
+        serde_json::from_str::<ResponseResult<WatchedToggled>>(
+            self.client
+                .put(format!("{}/api/movie/{}/watched", self.base_url, id))
+                .send()
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap()
+                .as_str(),
+        )
+        .unwrap()
     }
 }

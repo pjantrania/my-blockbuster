@@ -17,7 +17,13 @@
 		  <tr>
 			<th scope="row">{{loop.index}}</th>
 			<td><a href="/movie?id={{m.id}}">{{m.movie.title}}</a></td>
-			<td>{{m.watched}}</td>
+			<td>
+			  {{m.watched}}
+			  <form method="post" action="/toggleWatched">
+				<input type="hidden" name="id" value="{{m.id}}">
+				<button>toggle</button>
+			  </form>
+			</td>
 			<td>{{m.added}}</td>
 			<td>
 			  <form method="post" action="/delete">
