@@ -124,7 +124,8 @@ impl MovieDetail {
 
         let mut r = q;
         for k in sorted_keys {
-            r = r.bind(as_map[k].clone());
+            let val = String::from(as_map[k].as_str().unwrap());
+            r = r.bind(val);
         }
         r
     }
