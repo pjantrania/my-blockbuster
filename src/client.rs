@@ -1,4 +1,6 @@
-use crate::model::{DeleteResponse, ResponseResult, WatchedToggled};
+use crate::model::{
+    AddMovieRequest, AddMovieResponse, DeleteResponse, ResponseResult, WatchedToggled,
+};
 
 pub struct MyBlockbusterClient {
     client: reqwest::Client,
@@ -29,6 +31,24 @@ impl MyBlockbusterClient {
         serde_json::from_str::<ResponseResult<WatchedToggled>>(
             self.client
                 .put(format!("{}/api/movie/{}/watched", self.base_url, id))
+                .send()
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap()
+                .as_str(),
+        )
+        .unwrap()
+    }
+
+    pub async fn add_movie(&self, imdb_id: &str) -> ResponseResult<AddMovieResponse> {
+        serde_json::from_str::<ResponseResult<AddMovieResponse>>(
+            self.client
+                .post(format!("{}/api/movie", self.base_url))
+                .json(&AddMovieRequest {
+                    imdb_id: String::from(imdb_id),
+                })
                 .send()
                 .await
                 .unwrap()

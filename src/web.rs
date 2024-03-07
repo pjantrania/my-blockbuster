@@ -1,23 +1,14 @@
 use crate::client::MyBlockbusterClient;
-use crate::model::ResponseResult;
-use crate::omdb::{search_omdb, OmdbResponse, SearchResult};
+use crate::model::{Movie, ResponseResult};
+use crate::omdb::{search_omdb, OmdbResponse};
 use crate::Movies;
 use rocket::form::Form;
 use rocket::response::Redirect;
 use rocket::{Request, State};
 use rocket_db_pools::Connection;
 use rocket_dyn_templates::{context, Template};
-use serde::Serialize;
-use tracing::{event, Level};
 
-#[derive(sqlx::FromRow, Serialize, Debug)]
-struct Movie {
-    id: u32,
-    #[sqlx(flatten)]
-    movie: SearchResult,
-    watched: bool,
-    added: String,
-}
+use tracing::{event, Level};
 
 #[get("/")]
 pub async fn index(mut db: Connection<Movies>) -> Template {
@@ -54,6 +45,27 @@ pub async fn movie_detail(mut db: Connection<Movies>, id: i32) -> Option<Templat
 #[get("/add")]
 pub fn new_movie_form() -> Template {
     Template::render("add", context! {})
+}
+
+#[derive(FromForm)]
+pub struct ImdbIdInput {
+    imdb_id: String,
+}
+
+#[post("/add", data = "<imdb_id_form>")]
+pub async fn add_movie(
+    client: &State<MyBlockbusterClient>,
+    imdb_id_form: Form<ImdbIdInput>,
+) -> Redirect {
+    match client.add_movie(imdb_id_form.imdb_id.as_str()).await {
+        ResponseResult::Response(res) => tracing::info!(
+            "Successfully added movie with id {} and title {}.",
+            res.movie_id,
+            res.title
+        ),
+        ResponseResult::ErrorResponse(e) => tracing::error!("Error adding movie: {}", e.err),
+    };
+    Redirect::to("/")
 }
 
 #[get("/addSearchResults?<query>")]

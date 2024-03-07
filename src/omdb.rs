@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::env;
 
+use crate::model::MovieDetail;
+
 #[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
 #[serde(rename_all(deserialize = "PascalCase"))]
 pub struct SearchResult {
@@ -12,35 +14,6 @@ pub struct SearchResult {
     pub result_type: String,
     #[serde(rename(deserialize = "Poster"))]
     pub poster_uri: String,
-    pub released: Option<String>,
-    pub runtime: Option<String>,
-    pub genre: Option<String>,
-    pub director: Option<String>,
-    pub writer: Option<String>,
-    pub actors: Option<String>,
-    pub plot: Option<String>,
-    pub language: Option<String>,
-    pub country: Option<String>,
-    pub awards: Option<String>,
-    pub metascore: Option<String>,
-    #[serde(rename(deserialize = "imdbRating"))]
-    pub imdb_rating: Option<String>,
-    #[serde(rename(deserialize = "imdbVotes"))]
-    pub imdb_votes: Option<String>,
-    #[serde(rename(deserialize = "DVD"))]
-    pub dvd: Option<String>,
-    pub box_office: Option<String>,
-    pub production: Option<String>,
-    pub website: Option<String>,
-    #[sqlx(skip)]
-    pub ratings: Option<Vec<OmdbRating>>,
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-#[serde(rename_all(deserialize = "PascalCase"))]
-pub struct OmdbRating {
-    pub source: String,
-    pub value: String,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -72,9 +45,9 @@ pub async fn search_omdb(query: &str) -> OmdbResponse {
         .unwrap()
 }
 
-pub async fn get_movie(imdb_id: &str) -> SearchResult {
+pub async fn get_movie(imdb_id: &str) -> MovieDetail {
     let uri = format!("http://www.omdbapi.com/?i={}", imdb_id);
-    serde_json::from_str::<SearchResult>(get_and_parse_response(uri.as_str()).await.as_str())
+    serde_json::from_str::<MovieDetail>(get_and_parse_response(uri.as_str()).await.as_str())
         .unwrap()
 }
 

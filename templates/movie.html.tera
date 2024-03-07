@@ -3,38 +3,38 @@
 {% block content %}
   <div class="row">
 	<div class="col-sm-4">
-	  <img src="{{m.movie.poster_uri}}" />
+	  <img src="{{m.detail.poster_uri}}" />
 	</div>
 	<div class="col">
-	  <h1>{{m.movie.title}} ({{m.movie.year}})</h1>
+	  <h1>{{m.detail.title}} ({{m.detail.year}})</h1>
 	  <dl class="row">
 		<dt class="col-sm-1">Genre</dt>
-		<dd class="col-sm-6">{{m.movie.genre}}</dd>
+		<dd class="col-sm-6">{{m.detail.genre}}</dd>
 		
 		<dt class="col-sm-1">Runtime</dt>
-		<dd class="col-sm-6">{{m.movie.runtime}}</dd>
+		<dd class="col-sm-6">{{m.detail.runtime}}</dd>
 
 		<dt class="col-sm-1">Plot</dt>
-		<dd class="col-sm-6">{{m.movie.plot}}</dd>
+		<dd class="col-sm-6">{{m.detail.plot}}</dd>
 
 		<dt class="col-sm-1">Director</dt>
-		<dd class="col-sm-6">{{m.movie.director}}</dd>
+		<dd class="col-sm-6">{{m.detail.director}}</dd>
 
 		<dt class="col-sm-1">Writer</dt>
-		<dd class="col-sm-6">{{m.movie.writer}}</dd>
+		<dd class="col-sm-6">{{m.detail.writer}}</dd>
 
 		<dt class="col-sm-1">Actors</dt>
-		<dd class="col-sm-6">{{m.movie.actors}}</dd>
+		<dd class="col-sm-6">{{m.detail.actors}}</dd>
 
 		<dt class="col-sm-1">Country</dt>
-		<dd class="col-sm-6">{{m.movie.country}}</dd>
+		<dd class="col-sm-6">{{m.detail.country}}</dd>
 
 		<dt class="col-sm-1">Box Office</dt>
-		<dd class="col-sm-6">{{m.movie.box_office}}</dd>
+		<dd class="col-sm-6">{{m.detail.box_office}}</dd>
 
 		
 		<dt class="col-sm-1">Production</dt>
-		<dd class="col-sm-6">{{m.movie.production}}</dd>
+		<dd class="col-sm-6">{{m.detail.production}}</dd>
 	  </dl>
 	</div>
   </div>

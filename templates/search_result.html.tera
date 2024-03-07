@@ -15,7 +15,7 @@
 			<td><img width="200" src="{{m.poster_uri}}" /></td>
 			<td><b>{{m.title}}</b> ({{m.year}})</td>
 			<td>
-			  <form id="add_{{m.imdb_id}}" method="post" action="/api/movie/fromId">
+			  <form id="add_{{m.imdb_id}}" method="post" action="/add">
 			    <input name="imdb_id" type="hidden" value="{{m.imdb_id}}">
 			    <input name="query" type="hidden" value="{{query}}">
 			    <button>Add</button>

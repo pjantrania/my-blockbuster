@@ -1,22 +1,40 @@
 use crate::{
-    model::{DeleteResponse, ErrorResponse, ResponseResult, WatchedToggled},
-    omdb, web, MovieInput, Movies,
+    model::{
+        AddMovieRequest, AddMovieResponse, DeleteResponse, ErrorResponse, ResponseResult,
+        WatchedToggled,
+    },
+    omdb, Movies,
 };
-use rocket::{
-    form::{Form, Strict},
-    response::Redirect,
-    serde::json::Json,
-};
+use rocket::serde::json::Json;
 use rocket_db_pools::{sqlx, Connection};
 
 #[post("/movie", data = "<movie>")]
-pub async fn add_movie(mut db: Connection<Movies>, movie: Form<MovieInput<'_>>) -> Redirect {
-    sqlx::query("insert into movie(title) values(?)")
-        .bind(movie.title.to_string())
-        .execute(&mut **db)
+pub async fn add_movie(
+    mut db: Connection<Movies>,
+    movie: Json<AddMovieRequest>,
+) -> Json<ResponseResult<AddMovieResponse>> {
+    let existance: (i64,) = sqlx::query_as("select count(*) from movie where imdb_id = ?")
+        .bind(&movie.imdb_id)
+        .fetch_one(&mut **db)
         .await
         .unwrap();
-    Redirect::to("/")
+
+    if existance.0 == 0 {
+        let res = omdb::get_movie(movie.imdb_id.as_str()).await;
+        let insert_stmt = res.get_insert_statement();
+        let q =
+            res.bind_insert_statement(sqlx::query_as::<_, AddMovieResponse>(insert_stmt.as_ref()));
+        match q.fetch_one(&mut **db).await {
+            Ok(res) => Json(ResponseResult::Response(res)),
+            Err(err) => Json(ResponseResult::ErrorResponse(ErrorResponse {
+                err: err.to_string(),
+            })),
+        }
+    } else {
+        Json(ResponseResult::ErrorResponse(ErrorResponse {
+            err: format!("movie already exists: {}", movie.imdb_id),
+        }))
+    }
 }
 
 #[delete("/movie/<id>")]
@@ -58,99 +76,4 @@ pub async fn toggle_watched(
             err: e.to_string(),
         })),
     }
-}
-
-#[derive(FromForm)]
-pub struct IdInput<'r> {
-    imdb_id: Strict<&'r str>,
-}
-
-#[post("/movie/fromId", data = "<id_form>")]
-pub async fn add_from_imdb_id(mut db: Connection<Movies>, id_form: Form<IdInput<'_>>) -> Redirect {
-    let imdb_id = id_form.imdb_id.to_string();
-    let existance: (i64,) = sqlx::query_as("select count(*) from movie where imdb_id = ?")
-        .bind(&imdb_id)
-        .fetch_one(&mut **db)
-        .await
-        .unwrap();
-    if existance.0 == 0 {
-        let result = omdb::get_movie(imdb_id.as_str()).await;
-
-        sqlx::query(
-            "insert into movie(
-    title,
-    year,
-    imdb_id,
-    result_type,
-    poster_uri,
-    released,
-    runtime,
-    genre,
-    director,
-    writer,
-    actors,
-    plot,
-    language,
-    country,
-    awards,
-    metascore,
-    imdb_rating,
-    imdb_votes,
-    dvd,
-    box_office,
-    production,
-    website
-) values (
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?,
-    ?
-)",
-        )
-        .bind(&result.title)
-        .bind(&result.year)
-        .bind(&result.imdb_id)
-        .bind(&result.result_type)
-        .bind(&result.poster_uri)
-        .bind(&result.released)
-        .bind(&result.runtime)
-        .bind(&result.genre)
-        .bind(&result.director)
-        .bind(&result.writer)
-        .bind(&result.actors)
-        .bind(&result.plot)
-        .bind(&result.language)
-        .bind(&result.country)
-        .bind(&result.awards)
-        .bind(&result.metascore)
-        .bind(&result.imdb_rating)
-        .bind(&result.imdb_votes)
-        .bind(&result.dvd)
-        .bind(&result.box_office)
-        .bind(&result.production)
-        .bind(&result.website)
-        .execute(&mut **db)
-        .await
-        .unwrap();
-    }
-
-    Redirect::to(uri!(web::index()))
 }

@@ -1218,6 +1218,7 @@ dependencies = [
 name = "my-blockbuster"
 version = "0.1.0"
 dependencies = [
+ "itertools",
  "reqwest",
  "rocket",
  "rocket_db_pools",

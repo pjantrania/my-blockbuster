@@ -4,7 +4,6 @@ extern crate rocket;
 use client::MyBlockbusterClient;
 use rocket::{
     fairing::{self, AdHoc},
-    form::Strict,
     fs::relative,
     fs::FileServer,
     Build, Rocket,
@@ -35,11 +34,6 @@ async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     }
 }
 
-#[derive(FromForm)]
-struct MovieInput<'r> {
-    title: Strict<&'r str>,
-}
-
 #[launch]
 fn rocket() -> _ {
     let migrations_fairing = AdHoc::try_on_ignite("SQLx Migrations", run_migrations);
@@ -62,16 +56,12 @@ fn rocket() -> _ {
                 web::new_movie_form,
                 web::search_result_form,
                 web::toggle_watched,
+                web::add_movie,
             ],
         )
         .mount(
             "/api",
-            routes![
-                api::add_from_imdb_id,
-                api::add_movie,
-                api::delete_by_id,
-                api::toggle_watched,
-            ],
+            routes![api::add_movie, api::delete_by_id, api::toggle_watched,],
         )
         .mount("/public", FileServer::from(relative!("static")))
         .register("/", catchers![web::not_found])

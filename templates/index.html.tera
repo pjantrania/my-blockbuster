@@ -16,7 +16,7 @@
 		{% for m in items %}
 		  <tr>
 			<th scope="row">{{loop.index}}</th>
-			<td><a href="/movie?id={{m.id}}">{{m.movie.title}}</a></td>
+			<td><a href="/movie?id={{m.id}}">{{m.detail.title}}</a></td>
 			<td>
 			  {{m.watched}}
 			  <form method="post" action="/toggleWatched">
