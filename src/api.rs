@@ -3,7 +3,8 @@ use crate::{
         AddMovieRequest, AddMovieResponse, DeleteResponse, ErrorResponse, ResponseResult,
         WatchedToggled,
     },
-    omdb, Movies,
+    omdb::{self, search_omdb, OmdbResponse},
+    Movies,
 };
 use rocket::serde::json::Json;
 use rocket_db_pools::{sqlx, Connection};
@@ -76,4 +77,9 @@ pub async fn toggle_watched(
             err: e.to_string(),
         })),
     }
+}
+
+#[get("/omdb/search/<query>")]
+pub async fn omdb_search(query: &str) -> Json<OmdbResponse> {
+    Json(search_omdb(query).await)
 }

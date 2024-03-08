@@ -4,38 +4,39 @@ use std::env;
 use crate::model::MovieDetail;
 
 #[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
-#[serde(rename_all(deserialize = "PascalCase"))]
+#[serde(rename_all = "PascalCase")]
 pub struct SearchResult {
     pub title: String,
     pub year: String,
-    #[serde(rename(deserialize = "imdbID"))]
+    #[serde(rename = "imdbID")]
     pub imdb_id: String,
-    #[serde(rename(deserialize = "Type"))]
+    #[serde(rename = "Type")]
     pub result_type: String,
-    #[serde(rename(deserialize = "Poster"))]
+    #[serde(rename = "Poster")]
     pub poster_uri: String,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct SearchResponse {
-    #[serde(rename(deserialize = "Search"))]
+    #[serde(rename = "Search")]
     pub results: Option<Vec<SearchResult>>,
-    #[serde(rename(deserialize = "totalResults"))]
+    #[serde(rename = "totalResults")]
     pub total_results: String,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct ErrorResponse {
-    #[serde(rename(deserialize = "Error"))]
+    #[serde(rename = "Error")]
     pub error: String,
 }
 
 #[derive(Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
 #[serde(tag = "Response")]
 pub enum OmdbResponse {
-    #[serde(rename(deserialize = "True"))]
+    #[serde(rename = "True")]
     Success(SearchResponse),
-    #[serde(rename(deserialize = "False"))]
+    #[serde(rename = "False")]
     Error(ErrorResponse),
 }
 

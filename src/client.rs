@@ -1,5 +1,6 @@
-use crate::model::{
-    AddMovieRequest, AddMovieResponse, DeleteResponse, ResponseResult, WatchedToggled,
+use crate::{
+    model::{AddMovieRequest, AddMovieResponse, DeleteResponse, ResponseResult, WatchedToggled},
+    omdb::OmdbResponse,
 };
 
 pub struct MyBlockbusterClient {
@@ -49,6 +50,21 @@ impl MyBlockbusterClient {
                 .json(&AddMovieRequest {
                     imdb_id: String::from(imdb_id),
                 })
+                .send()
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap()
+                .as_str(),
+        )
+        .unwrap()
+    }
+
+    pub async fn search_omdb(&self, query: &str) -> OmdbResponse {
+        serde_json::from_str::<OmdbResponse>(
+            self.client
+                .get(format!("{}/api/omdb/search/{}", self.base_url, query))
                 .send()
                 .await
                 .unwrap()

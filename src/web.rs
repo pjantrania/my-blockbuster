@@ -1,6 +1,6 @@
 use crate::client::MyBlockbusterClient;
 use crate::model::{Movie, ResponseResult};
-use crate::omdb::{search_omdb, OmdbResponse};
+use crate::omdb::OmdbResponse;
 use crate::Movies;
 use rocket::form::Form;
 use rocket::response::Redirect;
@@ -69,8 +69,8 @@ pub async fn add_movie(
 }
 
 #[get("/addSearchResults?<query>")]
-pub async fn search_result_form(query: &str) -> Template {
-    let res = search_omdb(query).await;
+pub async fn search_result_form(client: &State<MyBlockbusterClient>, query: &str) -> Template {
+    let res = client.search_omdb(query).await;
     match res {
         OmdbResponse::Success(res) => Template::render(
             "search_result",

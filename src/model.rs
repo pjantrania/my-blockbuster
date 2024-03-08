@@ -102,9 +102,8 @@ impl MovieDetail {
         let as_map = serde_json::to_value(&self)
             .map(|v| v.as_object().unwrap().to_owned())
             .unwrap();
-        let mut sorted_keys = as_map.keys().sorted();
 
-        let sorted_fields = sorted_keys.join(", ");
+        let sorted_fields = as_map.keys().sorted().join(", ");
         let placeholders = iter::repeat("?").take(as_map.keys().len()).join(", ");
 
         format!(

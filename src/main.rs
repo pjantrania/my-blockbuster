@@ -61,7 +61,12 @@ fn rocket() -> _ {
         )
         .mount(
             "/api",
-            routes![api::add_movie, api::delete_by_id, api::toggle_watched,],
+            routes![
+                api::add_movie,
+                api::delete_by_id,
+                api::toggle_watched,
+                api::omdb_search,
+            ],
         )
         .mount("/public", FileServer::from(relative!("static")))
         .register("/", catchers![web::not_found])
