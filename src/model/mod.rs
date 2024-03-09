@@ -5,6 +5,9 @@ use rocket::serde::{Deserialize, Serialize};
 use sqlx::query::QueryAs;
 use sqlx_sqlite::{Sqlite, SqliteArguments};
 
+pub mod omdb;
+
+use crate::model::omdb::*;
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 #[serde(crate = "rocket::serde")]
 pub struct DeleteResponse {
@@ -45,7 +48,7 @@ pub struct AddMovieRequest {
     pub imdb_id: String,
 }
 
-#[derive(sqlx::FromRow, Serialize, Debug)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Movie {
     pub id: u32,
     pub watched: bool,
@@ -55,15 +58,11 @@ pub struct Movie {
 }
 
 #[derive(Deserialize, Serialize, sqlx::FromRow, Debug)]
-#[serde(rename_all(deserialize = "PascalCase"))]
 pub struct MovieDetail {
     pub title: String,
     pub year: String,
-    #[serde(rename(deserialize = "imdbID"))]
     pub imdb_id: String,
-    #[serde(rename(deserialize = "Type"))]
     pub result_type: String,
-    #[serde(rename(deserialize = "Poster"))]
     pub poster_uri: String,
     pub released: Option<String>,
     pub runtime: Option<String>,
@@ -76,23 +75,19 @@ pub struct MovieDetail {
     pub country: Option<String>,
     pub awards: Option<String>,
     pub metascore: Option<String>,
-    #[serde(rename(deserialize = "imdbRating"))]
     pub imdb_rating: Option<String>,
-    #[serde(rename(deserialize = "imdbVotes"))]
     pub imdb_votes: Option<String>,
-    #[serde(rename(deserialize = "DVD"))]
     pub dvd: Option<String>,
     pub box_office: Option<String>,
     pub production: Option<String>,
     pub website: Option<String>,
     #[sqlx(skip)]
     #[serde(skip_serializing)]
-    pub ratings: Option<Vec<OmdbRating>>,
+    pub ratings: Option<Vec<MovieRating>>,
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-#[serde(rename_all(deserialize = "PascalCase"))]
-pub struct OmdbRating {
+pub struct MovieRating {
     pub source: String,
     pub value: String,
 }
@@ -128,4 +123,60 @@ impl MovieDetail {
         }
         r
     }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SearchResult {
+    pub title: String,
+    pub year: String,
+    pub imdb_id: String,
+    pub result_type: String,
+    pub poster_uri: String,
+}
+
+impl Into<SearchResult> for OmdbSearchResult {
+    fn into(self) -> SearchResult {
+        SearchResult {
+            title: self.title,
+            year: self.year,
+            imdb_id: self.imdb_id,
+            result_type: self.result_type,
+            poster_uri: self.poster_uri,
+        }
+    }
+}
+
+impl From<OmdbErrorResponse> for ErrorResponse {
+    fn from(item: OmdbErrorResponse) -> Self {
+        ErrorResponse { err: item.error }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct SearchResponse {
+    pub results: Vec<SearchResult>,
+    pub total_results: u32,
+}
+
+impl From<OmdbSearchResponse> for SearchResponse {
+    fn from(item: OmdbSearchResponse) -> Self {
+        SearchResponse {
+            results: item.results.into_iter().map(|i| i.into()).collect(),
+            total_results: item.total_results.parse().unwrap(),
+        }
+    }
+}
+
+impl From<OmdbResponse> for ResponseResult<SearchResponse> {
+    fn from(value: OmdbResponse) -> Self {
+        match value {
+            OmdbResponse::Success(res) => ResponseResult::Response(SearchResponse::from(res)),
+            OmdbResponse::Error(err) => ResponseResult::ErrorResponse(ErrorResponse::from(err)),
+        }
+    }
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct GetMoviesResponse {
+    pub results: Vec<Movie>,
 }

@@ -1,6 +1,5 @@
 use crate::client::MyBlockbusterClient;
 use crate::model::{Movie, ResponseResult};
-use crate::omdb::OmdbResponse;
 use crate::Movies;
 use rocket::form::Form;
 use rocket::response::Redirect;
@@ -11,14 +10,11 @@ use rocket_dyn_templates::{context, Template};
 use tracing::{event, Level};
 
 #[get("/")]
-pub async fn index(mut db: Connection<Movies>) -> Template {
-    let res = match sqlx::query_as::<_, Movie>("select * from movie limit 100")
-        .fetch_all(&mut **db)
-        .await
-    {
-        Ok(ms) => ms,
-        Err(e) => {
-            event!(Level::ERROR, "Could not fetch movies: {}", e);
+pub async fn index(client: &State<MyBlockbusterClient>) -> Template {
+    let res = match client.get_movies(None, None).await {
+        ResponseResult::Response(res) => res.results,
+        ResponseResult::ErrorResponse(e) => {
+            event!(Level::ERROR, "Could not fetch movies: {}", e.err);
             vec![]
         }
     };
@@ -72,11 +68,13 @@ pub async fn add_movie(
 pub async fn search_result_form(client: &State<MyBlockbusterClient>, query: &str) -> Template {
     let res = client.search_omdb(query).await;
     match res {
-        OmdbResponse::Success(res) => Template::render(
+        ResponseResult::Response(res) => Template::render(
             "search_result",
             context! {items:res.results,add_uri:uri!(new_movie_form()).to_string(),query:query,},
         ),
-        OmdbResponse::Error(e) => Template::render("add", context! {error:e.error,query:query}),
+        ResponseResult::ErrorResponse(e) => {
+            Template::render("add", context! {error:e.err,query:query})
+        }
     }
 }
 

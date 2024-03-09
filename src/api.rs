@@ -1,9 +1,9 @@
 use crate::{
     model::{
-        AddMovieRequest, AddMovieResponse, DeleteResponse, ErrorResponse, ResponseResult,
-        WatchedToggled,
+        AddMovieRequest, AddMovieResponse, DeleteResponse, ErrorResponse, GetMoviesResponse, Movie,
+        ResponseResult, SearchResponse, WatchedToggled,
     },
-    omdb::{self, search_omdb, OmdbResponse},
+    omdb::{self, search_omdb},
     Movies,
 };
 use rocket::serde::json::Json;
@@ -80,6 +80,27 @@ pub async fn toggle_watched(
 }
 
 #[get("/omdb/search/<query>")]
-pub async fn omdb_search(query: &str) -> Json<OmdbResponse> {
+pub async fn omdb_search(query: &str) -> Json<ResponseResult<SearchResponse>> {
     Json(search_omdb(query).await)
+}
+
+#[get("/movies?<count>&<after>")]
+pub async fn get_movies(
+    mut db: Connection<Movies>,
+    count: Option<u32>,
+    after: Option<u32>,
+) -> Json<ResponseResult<GetMoviesResponse>> {
+    let count = std::cmp::min(count.unwrap_or(100), 100);
+    let after = after.unwrap_or(0);
+    match sqlx::query_as::<_, Movie>("select * from movie order by id limit ? offset ?")
+        .bind(count)
+        .bind(after)
+        .fetch_all(&mut **db)
+        .await
+    {
+        Ok(ms) => Json(ResponseResult::Response(GetMoviesResponse { results: ms })),
+        Err(e) => Json(ResponseResult::ErrorResponse(ErrorResponse {
+            err: e.to_string(),
+        })),
+    }
 }
