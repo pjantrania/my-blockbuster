@@ -1,5 +1,5 @@
 use crate::model::{
-    AddMovieRequest, AddMovieResponse, DeleteResponse, GetMoviesResponse, Movie, ResponseResult,
+    AddMovieRequest, AddMovieResponse, DeleteResponse, GetMoviesResponse, ResponseResult,
     SearchResponse, WatchedToggled,
 };
 

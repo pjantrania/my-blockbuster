@@ -6,47 +6,13 @@ use sqlx::query::QueryAs;
 use sqlx_sqlite::{Sqlite, SqliteArguments};
 
 pub mod omdb;
+use omdb::*;
 
-use crate::model::omdb::*;
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-#[serde(crate = "rocket::serde")]
-pub struct DeleteResponse {
-    pub movie_id: i32,
-    pub title: String,
-}
+mod request;
+pub use request::AddMovieRequest;
 
-#[derive(Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct ErrorResponse {
-    pub err: String,
-}
-
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-#[serde(crate = "rocket::serde")]
-pub struct WatchedToggled {
-    pub movie_id: i32,
-    pub watched: bool,
-}
-
-#[derive(Deserialize, Serialize, sqlx::FromRow)]
-#[serde(crate = "rocket::serde")]
-pub struct AddMovieResponse {
-    pub movie_id: i32,
-    pub title: String,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(crate = "rocket::serde", tag = "type")]
-pub enum ResponseResult<T> {
-    Response(T),
-    ErrorResponse(ErrorResponse),
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct AddMovieRequest {
-    pub imdb_id: String,
-}
+mod response;
+pub use response::*;
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Movie {
@@ -144,39 +110,4 @@ impl Into<SearchResult> for OmdbSearchResult {
             poster_uri: self.poster_uri,
         }
     }
-}
-
-impl From<OmdbErrorResponse> for ErrorResponse {
-    fn from(item: OmdbErrorResponse) -> Self {
-        ErrorResponse { err: item.error }
-    }
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct SearchResponse {
-    pub results: Vec<SearchResult>,
-    pub total_results: u32,
-}
-
-impl From<OmdbSearchResponse> for SearchResponse {
-    fn from(item: OmdbSearchResponse) -> Self {
-        SearchResponse {
-            results: item.results.into_iter().map(|i| i.into()).collect(),
-            total_results: item.total_results.parse().unwrap(),
-        }
-    }
-}
-
-impl From<OmdbResponse> for ResponseResult<SearchResponse> {
-    fn from(value: OmdbResponse) -> Self {
-        match value {
-            OmdbResponse::Success(res) => ResponseResult::Response(SearchResponse::from(res)),
-            OmdbResponse::Error(err) => ResponseResult::ErrorResponse(ErrorResponse::from(err)),
-        }
-    }
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct GetMoviesResponse {
-    pub results: Vec<Movie>,
 }
