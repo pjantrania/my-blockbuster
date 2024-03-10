@@ -1,10 +1,8 @@
 use crate::client::MyBlockbusterClient;
-use crate::model::{Movie, ResponseResult};
-use crate::Movies;
+use crate::model::ResponseResult;
 use rocket::form::Form;
 use rocket::response::Redirect;
 use rocket::{Request, State};
-use rocket_db_pools::Connection;
 use rocket_dyn_templates::{context, Template};
 
 use tracing::{event, Level};
@@ -24,15 +22,11 @@ pub async fn index(client: &State<MyBlockbusterClient>) -> Template {
 }
 
 #[get("/movie?<id>")]
-pub async fn movie_detail(mut db: Connection<Movies>, id: i32) -> Option<Template> {
-    match sqlx::query_as::<_, Movie>("select * from movie where id = ?")
-        .bind(id)
-        .fetch_one(&mut **db)
-        .await
-    {
-        Ok(res) => Some(Template::render("movie", context! {m: res})),
-        Err(e) => {
-            tracing::error!("Error fetching movie with id = {}: {}", id, e);
+pub async fn movie_detail(client: &State<MyBlockbusterClient>, id: u32) -> Option<Template> {
+    match client.get_movie(id).await {
+        ResponseResult::Response(res) => Some(Template::render("movie", context! {m: res})),
+        ResponseResult::ErrorResponse(e) => {
+            tracing::error!("Error fetching movie with id = {}: {}", id, e.err);
             None
         }
     }

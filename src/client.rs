@@ -1,5 +1,5 @@
 use crate::model::{
-    AddMovieRequest, AddMovieResponse, DeleteResponse, GetMoviesResponse, ResponseResult,
+    AddMovieRequest, AddMovieResponse, DeleteResponse, GetMoviesResponse, Movie, ResponseResult,
     SearchResponse, WatchedToggled,
 };
 
@@ -89,6 +89,21 @@ impl MyBlockbusterClient {
                     count.unwrap_or(100),
                     after.unwrap_or(0),
                 ))
+                .send()
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap()
+                .as_str(),
+        )
+        .unwrap()
+    }
+
+    pub async fn get_movie(&self, id: u32) -> ResponseResult<Movie> {
+        serde_json::from_str::<ResponseResult<Movie>>(
+            self.client
+                .get(format!("{}/api/movie/{}", self.base_url, id))
                 .send()
                 .await
                 .unwrap()

@@ -104,3 +104,21 @@ pub async fn get_movies(
         })),
     }
 }
+
+#[get("/movie/<id>")]
+pub async fn get_movie(mut db: Connection<Movies>, id: u32) -> Json<ResponseResult<Movie>> {
+    match sqlx::query_as::<_, Movie>("select * from movie where id = ?")
+        .bind(id)
+        .fetch_optional(&mut **db)
+        .await
+    {
+        Ok(res) => Json(res.map(|m| ResponseResult::Response(m)).unwrap_or(
+            ResponseResult::ErrorResponse(ErrorResponse {
+                err: String::from(format!("Couldn't find movie with id = {}", id)),
+            }),
+        )),
+        Err(e) => Json(ResponseResult::ErrorResponse(ErrorResponse {
+            err: e.to_string(),
+        })),
+    }
+}

@@ -67,6 +67,7 @@ fn rocket() -> _ {
                 api::toggle_watched,
                 api::omdb_search,
                 api::get_movies,
+                api::get_movie,
             ],
         )
         .mount("/public", FileServer::from(relative!("static")))
