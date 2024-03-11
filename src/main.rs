@@ -53,6 +53,7 @@ fn rocket() -> _ {
                 web::delete_movie,
                 web::index,
                 web::movie_detail,
+                web::movies_list,
                 web::new_movie_form,
                 web::search_result_form,
                 web::toggle_watched,

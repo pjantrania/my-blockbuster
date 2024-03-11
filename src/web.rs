@@ -8,7 +8,12 @@ use rocket_dyn_templates::{context, Template};
 use tracing::{event, Level};
 
 #[get("/")]
-pub async fn index(client: &State<MyBlockbusterClient>) -> Template {
+pub async fn index() -> Template {
+    Template::render("base", context! {})
+}
+
+#[get("/movies")]
+pub async fn movies_list(client: &State<MyBlockbusterClient>) -> Template {
     let res = match client.get_movies(None, None).await {
         ResponseResult::Response(res) => res.results,
         ResponseResult::ErrorResponse(e) => {

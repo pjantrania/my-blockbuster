@@ -1,15 +1,11 @@
-{% extends "base" %}
-
-{% block content %}
   <h1>Find a movie</h1>
   {% if error %}
 	<span class="error">{{error}}</span>
   {% endif %}
-  <form id="new_movie_form" method="get" action="/addSearchResults">
+  <form id="new_movie_form" hx-get="/addSearchResults" hx-target=".content">
 	<label for="title_input">title</label> <input id="title_input" name="query"
 												  {%- if query %}
 													value="{{query}}"
 													{%- endif %}>
 	<button>search</button>
   </form>
-{% endblock content %}

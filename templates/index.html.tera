@@ -1,8 +1,5 @@
-{% extends "base" %}
-
-{% block content %}
   <h1>Hi!</h1>
-  <a href="{{add_uri}}">add movie</a>
+  <a hx-get="{{add_uri}}" hx-target=".content" href="#">add movie</a>
   <table class="table">
 	<thead>
 	  <tr>
@@ -16,7 +13,7 @@
 		{% for m in items %}
 		  <tr>
 			<th scope="row">{{loop.index}}</th>
-			<td><a href="/movie?id={{m.id}}">{{m.detail.title}}</a></td>
+			<td><a href="#" hx-get="/movie?id={{m.id}}">{{m.detail.title}}</a></td>
 			<td>
 			  {{m.watched}}
 			  <form method="post" action="/toggleWatched">
@@ -34,4 +31,3 @@
 		{% endfor %}
 	  </tbody>
   </table>
-{% endblock content %}
