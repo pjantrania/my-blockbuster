@@ -4,13 +4,21 @@
     <meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>movies and movies</title>
+    <title>movies and movies {% block title %}{% endblock title %}</title>
 	<link rel="stylesheet" href="/public/bootstrap/css/bootstrap.min.css">
 	<script src="/public/htmx.min.js"></script>
   </head>
   <body>
-	<div class="container" hx-trigger="load" hx-get="/movies" hx-target=".content">
+	<div
+	  class="container"
+	  {% if not static_load %}
+		hx-trigger="load"
+		hx-get="/movies"
+	  {% endif %}
+	  hx-target=".content">
 	  <div class="content" hx-push-url="true">
+		{% block content %}
+		{% endblock content %}
 	  </div>
       <footer>
         <a href="#" hx-get="/movies" hx-target=".content" hx-replace-url="/">Home</a>

@@ -1,5 +1,6 @@
 use crate::client::MyBlockbusterClient;
 use crate::model::ResponseResult;
+use crate::web::request_source::RequestSource;
 use rocket::form::Form;
 use rocket::response::Redirect;
 use rocket::{Request, State};
@@ -23,13 +24,25 @@ pub async fn movies_list(client: &State<MyBlockbusterClient>) -> Template {
     };
 
     let add_uri = uri!(new_movie_form);
-    Template::render("index", context! {items: res, add_uri: add_uri.to_string()})
+    Template::render(
+        "snippets/index",
+        context! {items: res, add_uri: add_uri.to_string()},
+    )
 }
 
 #[get("/movie?<id>")]
-pub async fn movie_detail(client: &State<MyBlockbusterClient>, id: u32) -> Option<Template> {
+pub async fn movie_detail(
+    client: &State<MyBlockbusterClient>,
+    request_source: RequestSource,
+    id: u32,
+) -> Option<Template> {
     match client.get_movie(id).await {
-        ResponseResult::Response(res) => Some(Template::render("movie", context! {m: res})),
+        ResponseResult::Response(res) => Some(match request_source {
+            RequestSource::Htmx => Template::render("snippets/movie", context! {m: res}),
+            RequestSource::Static => {
+                Template::render("movie.html", context! {m: res, static_load: true})
+            }
+        }),
         ResponseResult::ErrorResponse(e) => {
             tracing::error!("Error fetching movie with id = {}: {}", id, e.err);
             None
@@ -39,7 +52,7 @@ pub async fn movie_detail(client: &State<MyBlockbusterClient>, id: u32) -> Optio
 
 #[get("/add")]
 pub fn new_movie_form() -> Template {
-    Template::render("add", context! {})
+    Template::render("snippets/add", context! {})
 }
 
 #[derive(FromForm)]
@@ -68,11 +81,11 @@ pub async fn search_result_form(client: &State<MyBlockbusterClient>, query: &str
     let res = client.search_omdb(query).await;
     match res {
         ResponseResult::Response(res) => Template::render(
-            "search_result",
+            "snippets/search_result",
             context! {items:res.results,add_uri:uri!(new_movie_form()).to_string(),query:query,},
         ),
         ResponseResult::ErrorResponse(e) => {
-            Template::render("add", context! {error:e.err,query:query})
+            Template::render("snippets/add", context! {error:e.err,query:query})
         }
     }
 }
