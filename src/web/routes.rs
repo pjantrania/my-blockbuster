@@ -14,7 +14,10 @@ pub async fn index() -> Template {
 }
 
 #[get("/movies")]
-pub async fn movies_list(client: &State<MyBlockbusterClient>) -> Template {
+pub async fn movies_list(
+    client: &State<MyBlockbusterClient>,
+    request_source: RequestSource,
+) -> Template {
     let res = match client.get_movies(None, None).await {
         ResponseResult::Response(res) => res.results,
         ResponseResult::ErrorResponse(e) => {
@@ -24,10 +27,16 @@ pub async fn movies_list(client: &State<MyBlockbusterClient>) -> Template {
     };
 
     let add_uri = uri!(new_movie_form);
-    Template::render(
-        "snippets/index",
-        context! {items: res, add_uri: add_uri.to_string()},
-    )
+    match request_source {
+        RequestSource::Htmx => Template::render(
+            "snippets/index",
+            context! {items: res, add_uri: add_uri.to_string()},
+        ),
+        RequestSource::Static => Template::render(
+            "index.html",
+            context! {items: res, add_uri: add_uri.to_string(), static_load: true},
+        ),
+    }
 }
 
 #[get("/movie?<id>")]
@@ -51,8 +60,11 @@ pub async fn movie_detail(
 }
 
 #[get("/add")]
-pub fn new_movie_form() -> Template {
-    Template::render("snippets/add", context! {})
+pub fn new_movie_form(request_source: RequestSource) -> Template {
+    match request_source {
+        RequestSource::Htmx => Template::render("snippets/add", context! {}),
+        RequestSource::Static => Template::render("add.html", context! {static_load: true}),
+    }
 }
 
 #[derive(FromForm)]
@@ -77,16 +89,32 @@ pub async fn add_movie(
 }
 
 #[get("/addSearchResults?<query>")]
-pub async fn search_result_form(client: &State<MyBlockbusterClient>, query: &str) -> Template {
+pub async fn search_result_form(
+    client: &State<MyBlockbusterClient>,
+    request_source: RequestSource,
+    query: &str,
+) -> Template {
     let res = client.search_omdb(query).await;
-    match res {
-        ResponseResult::Response(res) => Template::render(
-            "snippets/search_result",
-            context! {items:res.results,add_uri:uri!(new_movie_form()).to_string(),query:query,},
-        ),
-        ResponseResult::ErrorResponse(e) => {
-            Template::render("snippets/add", context! {error:e.err,query:query})
-        }
+    match request_source {
+        RequestSource::Htmx => match res {
+            ResponseResult::Response(res) => Template::render(
+                "snippets/search_result",
+                context! {items:res.results,add_uri:uri!(new_movie_form()).to_string(),query:query,},
+            ),
+            ResponseResult::ErrorResponse(e) => {
+                Template::render("snippets/add", context! {error:e.err,query:query})
+            }
+        },
+        RequestSource::Static => match res {
+            ResponseResult::Response(res) => Template::render(
+                "search_result.html",
+                context! {items:res.results,add_uri:uri!(new_movie_form()).to_string(),query:query, static_load: true},
+            ),
+            ResponseResult::ErrorResponse(e) => Template::render(
+                "add.html",
+                context! {error:e.err,query:query, static_load: true},
+            ),
+        },
     }
 }
 
